@@ -1,7 +1,7 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Observable, Subject, filter, of, switchMap, takeUntil } from 'rxjs';
+import { Observable, Subject, filter, of, switchMap, takeUntil, tap } from 'rxjs';
 
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -94,7 +94,7 @@ export class AddressFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public openAddCityDialog(): void {
-    const newCity = {
+    let newCity: City = {
       id: this.apiService.generateUUID(),
       name: '',
       countryId: this.selectedCountry!.id
@@ -108,10 +108,11 @@ export class AddressFormComponent implements OnInit, OnChanges, OnDestroy {
     .pipe(
       filter((city: City) => !!city),
       switchMap((city: City) => {
-        this.onCityAdd.next(city);
+        newCity = city;
 
         return this.apiService.addCity(city)
       }),
+      tap(() => this.onCityAdd.next(newCity)),
       takeUntil(this._destroyed$)
     ).subscribe();
   }
