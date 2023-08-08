@@ -1,5 +1,7 @@
+import { Router } from '@angular/router';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Observable, Subject, of, takeUntil, tap, map } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -8,9 +10,8 @@ import { AsyncPipe, NgFor } from '@angular/common';
 
 import { GeneralInfoFormComponent } from './components/general-info-form/general-info-form.component';
 import { AddressFormComponent } from './components/address-form/address-form.component';
-import { City, Country, Person } from '../../models';
+import { Address, City, Country, Person } from '../../models';
 import { ApiService } from '../../services/api.service';
-import { Observable, Subject, of, takeUntil } from 'rxjs';
 
 @Component({
   templateUrl: './add-user.component.html',
@@ -36,7 +37,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
   public addUserForm!: FormGroup;
   public countries$: Observable<Country[]> = of([]);
 
-  constructor(private readonly apiService: ApiService) {
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly router: Router
+  ) {
     this.generateUserForm();
   }
 
@@ -79,10 +83,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
       birthdate,
       addresses
     };
-    
+
     this.apiService.addPerson(person)
-    .pipe(takeUntil(this._destroyed$))
-    .subscribe();
+    .pipe(
+      tap(() => {
+        this.addUserForm.reset();
+        this.router.navigate(['/users-list']);
+      }),
+      takeUntil(this._destroyed$)
+    ).subscribe();
   }
 
   public addAddress(): void {
@@ -96,7 +105,4 @@ export class AddUserComponent implements OnInit, OnDestroy {
   public notifyCityAdded(city: City): void {
     this._newCityNotifyer$.next(city);
   }
-
-  // method that creates a new uuid
-  
 }

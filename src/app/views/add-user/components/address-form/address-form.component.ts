@@ -1,7 +1,7 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Observable, Subject, filter, of, switchMap, takeUntil, tap } from 'rxjs';
+import { Observable, Subject, filter, of, switchMap, takeUntil } from 'rxjs';
 
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -68,14 +68,15 @@ export class AddressFormComponent implements OnInit, OnChanges, OnDestroy {
   static addUserAddress(): FormGroup {
     return new FormGroup({
       name: new FormControl('', { validators: [Validators.required] }),
-      country: new FormControl(null),
-      city: new FormControl(null),
+      country: new FormControl(0),
+      city: new FormControl(0),
       street: new FormControl('', { validators: [Validators.required] })
     });
   }
 
   private listenToCountryChange(): void {
     this.cities$ = this.childForm?.get('country')?.valueChanges.pipe(
+      filter((countryId: number) => !!countryId),
       switchMap((countryId: number) => {
         const country = this.countries?.find((country: Country) => country.id === countryId);
 
