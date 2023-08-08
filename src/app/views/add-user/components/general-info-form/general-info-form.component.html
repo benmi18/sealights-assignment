@@ -1,0 +1,15 @@
+<form autocomplete="off" [formGroup]="childForm">
+    <!-- Name -->
+    <mat-form-field class="input" appearance="outline" required>
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name">
+    </mat-form-field>
+
+    <!-- Birthdate -->
+    <mat-form-field class="input" appearance="outline">
+        <mat-label>Birthdate</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="birthdate">
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+</form>
