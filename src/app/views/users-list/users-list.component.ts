@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 
-import { ApiService } from '../../services/api.service';
+import { ApiService } from '../../services';
 import { Person } from '../../models';
 
 @Component({

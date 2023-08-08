@@ -1,17 +1,16 @@
 import { Router } from '@angular/router';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Observable, Subject, of, takeUntil, tap, map } from 'rxjs';
+import { Observable, Subject, of, takeUntil, tap } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AsyncPipe, NgFor } from '@angular/common';
 
-import { GeneralInfoFormComponent } from './components/general-info-form/general-info-form.component';
-import { AddressFormComponent } from './components/address-form/address-form.component';
-import { Address, City, Country, Person } from '../../models';
-import { ApiService } from '../../services/api.service';
+import { GeneralInfoFormComponent, AddressFormComponent } from './components';
+import { Country, Person } from '../../models';
+import { ApiService, NotificationService } from '../../services';
 
 @Component({
   templateUrl: './add-user.component.html',
@@ -31,15 +30,14 @@ import { ApiService } from '../../services/api.service';
 })
 export class AddUserComponent implements OnInit, OnDestroy {
   private readonly _destroyed$: Subject<void> = new Subject<void>();
-  private readonly _newCityNotifyer$: Subject<City> = new Subject<City>();
 
-  public newCityNotifyer$: Observable<City> = this._newCityNotifyer$.asObservable();
   public addUserForm!: FormGroup;
   public countries$: Observable<Country[]> = of([]);
 
   constructor(
     private readonly apiService: ApiService,
-    private readonly router: Router
+    private readonly router: Router,
+    public readonly notificationService: NotificationService
   ) {
     this.generateUserForm();
   }
@@ -100,9 +98,5 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
   public removeAddress(index: number): void {
     this.addressesFormArray.removeAt(index);
-  }
-
-  public notifyCityAdded(city: City): void {
-    this._newCityNotifyer$.next(city);
   }
 }

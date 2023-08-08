@@ -6,10 +6,8 @@
         <app-address-form *ngFor="let childForm of addressesFormArray.controls; let i = index" 
             [childForm]="childForm" 
             [countries]="countries$ | async"
-            [newCityNotification]="newCityNotifyer$ | async"
             [addressIndex]="i"
             [addressCount]="addressesFormArray.length"
-            (onCityAdd)="notifyCityAdded($event)"
             (onRemoveAddress)="removeAddress($event)">
         </app-address-form>
     </div>
