@@ -1,0 +1,39 @@
+<form autocomplete="off" [formGroup]="childForm">
+    <!-- Name -->
+    <mat-form-field class="input" appearance="outline" required>
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name">
+    </mat-form-field>
+
+    <!-- Country -->
+    <mat-form-field class="input" appearance="outline">
+        <mat-label>Select country</mat-label>
+        <mat-select formControlName="country">
+            <mat-option *ngFor="let country of countries" [value]="country.id">
+                {{country.name}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <!-- City -->
+    <div class="city-section">
+        <mat-form-field class="input" appearance="outline">
+            <mat-label>Select city</mat-label>
+            <mat-select formControlName="city">
+                <mat-option *ngFor="let city of filteredities$ | async" [value]="city.id">
+                    {{city.name}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <button mat-raised-button color="accent" (click)="openAddCityDialog()">Add City</button>
+    </div>
+
+    <!-- Street -->
+    <mat-form-field class="input" appearance="outline" required>
+        <mat-label>Street</mat-label>
+        <input matInput formControlName="street">
+    </mat-form-field>
+</form>
+
+<!-- Remove address button -->
+<button mat-raised-button color="warn" [disabled]="addressCount < 2" (click)="removeAddress()">Remove address</button>
