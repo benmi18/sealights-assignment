@@ -1,0 +1,16 @@
+.addresses-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.main-form {
+    margin-bottom: 20px;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    width: 150px;
+    gap: 20px;
+}
