@@ -1,8 +1,7 @@
-import { AsyncPipe, NgFor } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { tap } from 'rxjs';
+import { Observable, Subject, filter, of, switchMap, takeUntil, tap } from 'rxjs';
 
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 import { AddCityDialogComponent } from '../add-city-dialog/add-city-dialog.component';
+import { ApiService } from './../../../../services/api.service';
 import { City, Country } from './../../../../models';
 
 
@@ -28,23 +28,42 @@ import { City, Country } from './../../../../models';
     MatDialogModule,
     MatButtonModule,
     NgFor,
+    NgIf,
     AsyncPipe
   ]
 })
-export class AddressFormComponent {
+export class AddressFormComponent implements OnInit, OnChanges, OnDestroy {
+  private readonly _destroyed$: Subject<void> = new Subject<void>();
+
   @Input() childForm!: any;
   @Input() addressIndex!: number;
-  @Input() countries!: Country[] | null;
-  @Input() cities!: City[] | null;
   @Input() addressCount!: number;
+  @Input() countries!: Country[] | null;
+  @Input() newCityNotification: City | null = null;
 
   @Output() onRemoveAddress: EventEmitter<number> = new EventEmitter<number>();
-  @Output() onCountryChange: EventEmitter<Country> = new EventEmitter<Country>();
-  @Output() onAddCity: EventEmitter<City> = new EventEmitter<City>();
+  @Output() onCityAdd: EventEmitter<City> = new EventEmitter<City>();
 
   private selectedCountry: Country | undefined;
+  private citiesLength: number = 0;
 
-  constructor(public dialog: MatDialog) {
+  public cities$: Observable<City[]> = of([]);
+
+  constructor(
+    public readonly dialog: MatDialog,
+    private readonly apiService: ApiService
+  ) {}
+
+  ngOnDestroy(): void {
+    this._destroyed$.next();
+    this._destroyed$.complete();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    this.handleNewCityNotification(changes['newCityNotification']?.currentValue);
+  }
+
+  ngOnInit(): void {
     this.listenToCountryChange();
   }
 
@@ -58,38 +77,53 @@ export class AddressFormComponent {
   }
 
   private listenToCountryChange(): void {
-    this.childForm?.get('country')?.valueChanges.pipe(
-      tap((countryId: number) => {
+    this.cities$ = this.childForm?.get('country')?.valueChanges.pipe(
+      switchMap((countryId: number) => {
         const country = this.countries?.find((country: Country) => country.id === countryId);
 
         this.selectedCountry = country;
-        this.onCountryChange.next(country!);
+
+        return this.apiService.getCities(countryId);
       }),
-      takeUntilDestroyed()
-    ).subscribe();
+      tap((cities: City[]) => {
+        this.citiesLength = cities.length;
+      })
+    );
+  }
+
+  private handleNewCityNotification(city: City): void {
+    if (city && city.countryId === this.selectedCountry?.id) {
+      this.cities$ = this.apiService.getCities(city.countryId);
+    }
   }
 
   public openAddCityDialog(): void {
     if (!this.selectedCountry) {
       console.error('No country selected');
+      // TODO: show error message
       return;
     }
 
     const newCity = {
-      id: (this.cities?.length || 0) + 1,
+      id: this.citiesLength + 1,
       name: '',
       countryId: this.selectedCountry!.id
     };
 
     const dialogRef = this.dialog.open(AddCityDialogComponent, {
-      data: { country: this.selectedCountry, city: newCity },
+      data: { country: this.selectedCountry, city: newCity }
     });
 
-    dialogRef.afterClosed().subscribe((city: City) => {
-      if (!!city) {
-        this.onAddCity.next(city);
-      }
-    });
+    dialogRef.afterClosed()
+    .pipe(
+      filter((city: City) => !!city),
+      switchMap((city: City) => {
+        this.onCityAdd.next(city);
+
+        return this.apiService.addCity(city)
+      }),
+      takeUntil(this._destroyed$)
+    ).subscribe();
   }
 
   public removeAddress(): void {

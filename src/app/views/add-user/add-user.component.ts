@@ -10,7 +10,7 @@ import { GeneralInfoFormComponent } from './components/general-info-form/general
 import { AddressFormComponent } from './components/address-form/address-form.component';
 import { City, Country } from '../../models';
 import { ApiService } from '../../services/api.service';
-import { Observable, of } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
 
 @Component({
   templateUrl: './add-user.component.html',
@@ -29,8 +29,10 @@ import { Observable, of } from 'rxjs';
   standalone: true
 })
 export class AddUserComponent implements OnInit {
+  private _newCityNotifyer$: Subject<City> = new Subject<City>();
+
+  public newCityNotifyer$: Observable<City> = this._newCityNotifyer$.asObservable();
   public addUserForm!: FormGroup;
-  public cities$: Observable<City[]> = of([]);
   public countries$: Observable<Country[]> = of([]);
 
   constructor(private readonly apiService: ApiService) {
@@ -41,20 +43,16 @@ export class AddUserComponent implements OnInit {
     this.readCountries();
   }
 
-  readCities(country: Country): void {
-    this.cities$ = this.apiService.getCities(country.id);
-  }
-
-  readCountries(): void {
-    this.countries$ = this.apiService.getCountries();
-  }
-
   get generalInfoFormGroups(): FormGroup {
     return this.addUserForm.get('generalInfo') as FormGroup;
   }
 
   get addressesFormArray(): FormArray {
     return this.addUserForm.get('addresses') as FormArray;
+  }
+
+  private readCountries(): void {
+    this.countries$ = this.apiService.getCountries();
   }
 
   private generateUserForm(): void {
@@ -77,5 +75,9 @@ export class AddUserComponent implements OnInit {
 
   public removeAddress(index: number): void {
     this.addressesFormArray.removeAt(index);
+  }
+
+  public notifyCityAdded(city: City): void {
+    this._newCityNotifyer$.next(city);
   }
 }

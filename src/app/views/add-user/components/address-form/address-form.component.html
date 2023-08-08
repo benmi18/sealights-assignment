@@ -20,7 +20,7 @@
         <mat-form-field class="input" appearance="outline">
             <mat-label>Select city</mat-label>
             <mat-select formControlName="city">
-                <mat-option *ngFor="let city of cities" [value]="city.id">
+                <mat-option *ngFor="let city of cities$ | async" [value]="city.id">
                     {{city.name}}
                 </mat-option>
             </mat-select>
