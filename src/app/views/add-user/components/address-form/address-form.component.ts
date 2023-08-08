@@ -1,7 +1,8 @@
 import { AsyncPipe, NgFor } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Observable, map, tap } from 'rxjs';
+import { tap } from 'rxjs';
 
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,24 +31,21 @@ import { City, Country } from './../../../../models';
     AsyncPipe
   ]
 })
-export class AddressFormComponent implements OnInit {
+export class AddressFormComponent {
   @Input() childForm!: any;
   @Input() addressIndex!: number;
-  @Input() countries!: Country[];
-  @Input() cities!: City[];
+  @Input() countries!: Country[] | null;
+  @Input() cities!: City[] | null;
   @Input() addressCount!: number;
 
   @Output() onRemoveAddress: EventEmitter<number> = new EventEmitter<number>();
+  @Output() onCountryChange: EventEmitter<Country> = new EventEmitter<Country>();
   @Output() onAddCity: EventEmitter<City> = new EventEmitter<City>();
-
-  public filteredities$: Observable<City[]> | undefined;
 
   private selectedCountry: Country | undefined;
 
-  constructor(public dialog: MatDialog) { }
-
-  ngOnInit(): void {
-    this.initCitiesOptions();
+  constructor(public dialog: MatDialog) {
+    this.listenToCountryChange();
   }
 
   static addUserAddress(): FormGroup {
@@ -59,13 +57,16 @@ export class AddressFormComponent implements OnInit {
     });
   }
 
-  private initCitiesOptions(): void {
-    this.filteredities$ = this.childForm.get('country')?.valueChanges.pipe(
+  private listenToCountryChange(): void {
+    this.childForm?.get('country')?.valueChanges.pipe(
       tap((countryId: number) => {
-        this.selectedCountry = this.countries.find((country: Country) => country.id === countryId);
+        const country = this.countries?.find((country: Country) => country.id === countryId);
+
+        this.selectedCountry = country;
+        this.onCountryChange.next(country!);
       }),
-      map((countryId: number) => this.cities.filter((city: City) => city.countryId === countryId))
-    );
+      takeUntilDestroyed()
+    ).subscribe();
   }
 
   public openAddCityDialog(): void {
@@ -75,7 +76,7 @@ export class AddressFormComponent implements OnInit {
     }
 
     const newCity = {
-      id: this.cities.length + 1,
+      id: (this.cities?.length || 0) + 1,
       name: '',
       countryId: this.selectedCountry!.id
     };

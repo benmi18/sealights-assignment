@@ -1,48 +1,52 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { CommonModule, NgFor, NgForOf } from '@angular/common';
+import { AsyncPipe, NgFor } from '@angular/common';
 
 import { GeneralInfoFormComponent } from './components/general-info-form/general-info-form.component';
 import { AddressFormComponent } from './components/address-form/address-form.component';
-import { City, Country } from 'src/app/models';
+import { City, Country } from '../../models';
+import { ApiService } from '../../services/api.service';
+import { Observable, of } from 'rxjs';
 
 @Component({
   templateUrl: './add-user.component.html',
   styleUrls: ['./add-user.component.scss'],
-  imports: [MatFormFieldModule, MatInputModule, MatButtonModule, ReactiveFormsModule, GeneralInfoFormComponent, CommonModule, AddressFormComponent],
+  imports: [
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    ReactiveFormsModule,
+    GeneralInfoFormComponent,
+    NgFor,
+    AsyncPipe,
+    AddressFormComponent
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true
 })
-export class AddUserComponent {
+export class AddUserComponent implements OnInit {
   public addUserForm!: FormGroup;
+  public cities$: Observable<City[]> = of([]);
+  public countries$: Observable<Country[]> = of([]);
 
-  countriesMock: Country[] = [
-    { name: 'Poland', id: 1 },
-    { name: 'Germany', id: 2 },
-    { name: 'France', id: 3 },
-  ];
-
-  citiesMock: City[] = [
-    { name: 'Warsaw', id: 1, countryId: 1 },
-    { name: 'Berlin', id: 2, countryId: 2 },
-    { name: 'Paris', id: 3, countryId: 3 },
-    { name: 'Krakow', id: 4, countryId: 1 },
-    { name: 'Gdansk', id: 5, countryId: 1 },
-    { name: 'Wroclaw', id: 6, countryId: 1 },
-    { name: 'Hamburg', id: 7, countryId: 2 },
-    { name: 'Munich', id: 8, countryId: 2 },
-    { name: 'Cologne', id: 9, countryId: 2 },
-    { name: 'Lyon', id: 10, countryId: 3 },
-    { name: 'Marseille', id: 11, countryId: 3 },
-    { name: 'Toulouse', id: 12, countryId: 3 }
-  ];
-
-  constructor() {
+  constructor(private readonly apiService: ApiService) {
     this.generateUserForm();
+  }
+
+  ngOnInit(): void {
+    this.readCountries();
+  }
+
+  readCities(country: Country): void {
+    this.cities$ = this.apiService.getCities(country.id);
+  }
+
+  readCountries(): void {
+    this.countries$ = this.apiService.getCountries();
   }
 
   get generalInfoFormGroups(): FormGroup {

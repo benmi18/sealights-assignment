@@ -5,10 +5,11 @@
     <div class="addresses-list">
         <app-address-form *ngFor="let childForm of addressesFormArray.controls; let i = index" 
             [childForm]="childForm" 
-            [countries]="countriesMock" 
-            [cities]="citiesMock"
+            [countries]="countries$ | async" 
+            [cities]="cities$ | async"
             [addressIndex]="i"
             [addressCount]="addressesFormArray.length"
+            (onCountryChange)="readCities($event)"
             (onRemoveAddress)="removeAddress($event)">
         </app-address-form>
     </div>
