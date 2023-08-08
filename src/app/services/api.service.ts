@@ -10,7 +10,7 @@ import { City, Country, Person } from '../models';
 export class ApiService {
   private readonly API_URL = 'http://localhost:3000/api';
 
-  constructor(private readonly httpClient: HttpClient) { }
+  constructor(private httpClient: HttpClient) { }
 
   getPersons(): Observable<Person[]> {
     return this.httpClient.get<Person[]>(`${this.API_URL}/persons`);
@@ -29,6 +29,6 @@ export class ApiService {
   }
 
   addCity(city: City): Observable<void> {
-    return this.httpClient.post<void>(`${this.API_URL}/cities`, city);
+    return this.httpClient.post<void>(`${this.API_URL}/city`, city);
   }
 }
