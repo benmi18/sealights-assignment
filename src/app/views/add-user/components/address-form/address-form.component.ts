@@ -44,9 +44,7 @@ export class AddressFormComponent implements OnInit, OnChanges, OnDestroy {
   @Output() onRemoveAddress: EventEmitter<number> = new EventEmitter<number>();
   @Output() onCityAdd: EventEmitter<City> = new EventEmitter<City>();
 
-  private selectedCountry: Country | undefined;
-  private citiesLength: number = 0;
-
+  public selectedCountry: Country | undefined;
   public cities$: Observable<City[]> = of([]);
 
   constructor(
@@ -84,9 +82,6 @@ export class AddressFormComponent implements OnInit, OnChanges, OnDestroy {
         this.selectedCountry = country;
 
         return this.apiService.getCities(countryId);
-      }),
-      tap((cities: City[]) => {
-        this.citiesLength = cities.length;
       })
     );
   }
@@ -98,14 +93,8 @@ export class AddressFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public openAddCityDialog(): void {
-    if (!this.selectedCountry) {
-      console.error('No country selected');
-      // TODO: show error message
-      return;
-    }
-
     const newCity = {
-      id: this.citiesLength + 1,
+      id: this.apiService.generateUUID(),
       name: '',
       countryId: this.selectedCountry!.id
     };

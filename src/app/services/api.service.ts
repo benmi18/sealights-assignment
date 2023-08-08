@@ -25,10 +25,14 @@ export class ApiService {
   }
 
   addPerson(person: Person): Observable<void> {
-    return this.httpClient.post<void>(`${this.API_URL}/persons`, person);
+    return this.httpClient.post<void>(`${this.API_URL}/person`, person);
   }
 
   addCity(city: City): Observable<void> {
     return this.httpClient.post<void>(`${this.API_URL}/city`, city);
+  }
+
+  generateUUID(): number {
+    return Math.floor(Math.random() * 1000000);
   }
 }
