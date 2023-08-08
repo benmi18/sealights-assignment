@@ -9,8 +9,7 @@ import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
-    AppComponent,
-    UsersListComponent
+    AppComponent
   ],
   imports: [
     BrowserModule,

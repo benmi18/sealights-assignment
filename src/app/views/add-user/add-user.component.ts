@@ -88,7 +88,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
     .pipe(
       tap(() => {
         this.addUserForm.reset();
-        this.router.navigate(['/users-list']);
+        this.router.navigate(['/persons']);
       }),
       takeUntil(this._destroyed$)
     ).subscribe();
